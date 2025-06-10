@@ -74,13 +74,7 @@ devmatch/
 └── package.json
 ```
 
----
 
-## 🖼️ Screenshots
-
-> (Add screenshots of key pages: Login, Match, Profile, Chat Preview, etc.)
-
----
 
 ## 🚧 Work In Progress
 
