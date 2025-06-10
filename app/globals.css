@@ -1,0 +1,1172 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 97%;
+    --foreground: 220 25% 10%;
+    --card: 220 20% 97%;
+    --card-foreground: 220 25% 10%;
+    --popover: 220 20% 97%;
+    --popover-foreground: 220 25% 10%;
+    --primary: 344 100% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 10% 90%;
+    --secondary-foreground: 220 25% 10%;
+    --muted: 220 10% 90%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 220 10% 90%;
+    --accent-foreground: 220 25% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 15% 85%;
+    --input: 220 15% 85%;
+    --ring: 344 100% 54%;
+    --chart-1: 344 100% 54%;
+    --chart-2: 187 100% 42%;
+    --chart-3: 270 50% 60%;
+    --chart-4: 30 90% 60%;
+    --chart-5: 140 60% 40%;
+    --radius: 0.5rem;
+
+    /* Squid Game Coder Theme Colors */
+    --squid-pink: 344 100% 54%; /* #FF1744 - Squid Game Pink */
+    --squid-teal: 187 100% 42%; /* #00BCD4 - Squid Game Teal */
+    --squid-pink-muted: 344 60% 65%; /* Softer pink for backgrounds */
+    --squid-teal-muted: 187 60% 55%; /* Softer teal for backgrounds */
+    --squid-dark: 220 25% 15%; /* Dark terminal background */
+    --squid-darker: 220 30% 8%; /* Darker terminal background */
+    --squid-light: 220 15% 95%; /* Light background */
+    --squid-gray: 220 10% 85%; /* Neutral gray */
+
+    /* Code Editor Colors with Squid Game Accent */
+    --code-bg: 220 25% 15%; /* Dark editor background */
+    --code-bg-light: 220 20% 18%; /* Slightly lighter background */
+    --code-line: 220 20% 25%; /* Line separators */
+    --code-selection: 344 100% 54%; /* Squid Game pink for selections */
+    --code-selection-bg: 344 100% 54% / 0.15; /* Pink selection background */
+    --code-comment: 220 15% 55%; /* Comments */
+    --code-keyword: 344 80% 65%; /* Keywords in muted pink */
+    --code-function: 187 80% 55%; /* Functions in muted teal */
+    --code-string: 140 60% 50%; /* Strings in green */
+    --code-number: 30 90% 65%; /* Numbers in orange */
+    --code-operator: 344 100% 54%; /* Operators in squid pink */
+    --code-cursor: 187 100% 42%; /* Cursor in squid teal */
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 220 10% 90%;
+    --card: 220 25% 8%;
+    --card-foreground: 220 10% 90%;
+    --popover: 220 25% 8%;
+    --popover-foreground: 220 10% 90%;
+    --primary: 344 100% 54%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 15%;
+    --secondary-foreground: 220 10% 90%;
+    --muted: 220 20% 15%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 220 20% 15%;
+    --accent-foreground: 220 10% 90%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 344 100% 54%;
+    --chart-1: 344 100% 54%;
+    --chart-2: 187 100% 42%;
+    --chart-3: 270 50% 70%;
+    --chart-4: 30 90% 65%;
+    --chart-5: 140 60% 50%;
+
+    /* Dark mode adjustments */
+    --squid-pink: 344 100% 54%;
+    --squid-teal: 187 100% 42%;
+    --squid-pink-muted: 344 70% 70%;
+    --squid-teal-muted: 187 70% 60%;
+    --squid-dark: 220 10% 90%;
+    --squid-darker: 220 5% 95%;
+    --squid-light: 220 25% 8%;
+    --squid-gray: 220 20% 15%;
+
+    --code-bg: 220 25% 8%;
+    --code-bg-light: 220 20% 12%;
+    --code-line: 220 15% 20%;
+    --code-selection: 344 100% 54%;
+    --code-selection-bg: 344 100% 54% / 0.2;
+    --code-comment: 220 15% 65%;
+    --code-keyword: 344 80% 70%;
+    --code-function: 187 80% 60%;
+    --code-string: 140 60% 55%;
+    --code-number: 30 90% 70%;
+    --code-operator: 344 100% 54%;
+    --code-cursor: 187 100% 42%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+    background-color: hsl(var(--code-bg));
+    /* Squid Game inspired subtle pattern */
+    background-image: radial-gradient(circle at 20% 80%, hsla(var(--squid-pink) / 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, hsla(var(--squid-teal) / 0.03) 0%, transparent 50%), /* Terminal grid */
+      linear-gradient(to right, hsla(var(--squid-pink) / 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, hsla(var(--squid-pink) / 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px;
+  }
+}
+
+/* Squid Game + Coder Animations */
+@keyframes squid-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 hsla(var(--squid-pink) / 0.4);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px hsla(var(--squid-pink) / 0);
+  }
+}
+
+@keyframes terminal-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 5px hsla(var(--squid-pink) / 0.3), 0 0 10px hsla(var(--squid-teal) / 0.2), inset 0 0 5px
+      hsla(var(--squid-pink) / 0.1);
+  }
+  50% {
+    box-shadow: 0 0 8px hsla(var(--squid-pink) / 0.5), 0 0 15px hsla(var(--squid-teal) / 0.3), inset 0 0 8px
+      hsla(var(--squid-pink) / 0.15);
+  }
+}
+
+@keyframes cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes typing-effect {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes squid-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@keyframes subtle-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes terminal-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Squid Game Scene-Inspired Animations */
+
+/* Red Light, Green Light - Scanning Animation */
+@keyframes red-light-scan {
+  0% {
+    transform: translateX(-100%) scaleX(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(0%) scaleX(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(100%) scaleX(0);
+    opacity: 0;
+  }
+}
+
+@keyframes green-light-safe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 hsla(var(--squid-teal) / 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px hsla(var(--squid-teal) / 0);
+  }
+}
+
+/* Glass Bridge - Cracking Effect */
+@keyframes glass-crack {
+  0% {
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  25% {
+    transform: scale(1.02);
+    filter: blur(0.5px);
+  }
+  50% {
+    transform: scale(0.98);
+    filter: blur(1px);
+  }
+  75% {
+    transform: scale(1.01);
+    filter: blur(0.5px);
+  }
+  100% {
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes glass-shatter {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(2deg);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(0.8) rotate(-1deg);
+    opacity: 0;
+  }
+}
+
+/* Honeycomb/Dalgona - Delicate Precision */
+@keyframes dalgona-carve {
+  0% {
+    clip-path: circle(0% at 50% 50%);
+  }
+  100% {
+    clip-path: circle(100% at 50% 50%);
+  }
+}
+
+@keyframes honeycomb-reveal {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+    filter: brightness(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+}
+
+/* Marbles - Rolling Effect */
+@keyframes marble-roll {
+  0% {
+    transform: translateX(-20px) rotate(0deg);
+  }
+  100% {
+    transform: translateX(20px) rotate(360deg);
+  }
+}
+
+@keyframes marble-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) scale(1.1);
+  }
+  50% {
+    transform: translateY(-12px) scale(1.05);
+  }
+  75% {
+    transform: translateY(-4px) scale(1.02);
+  }
+}
+
+/* VIP Mask - Geometric Reveal */
+@keyframes mask-reveal {
+  0% {
+    clip-path: polygon(50% 50%, 50% 50%, 50% 50%, 50% 50%);
+  }
+  25% {
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  }
+  50% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+  100% {
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%);
+  }
+}
+
+@keyframes triangle-guard {
+  0%,
+  100% {
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    transform: scale(1);
+  }
+  50% {
+    clip-path: polygon(50% 10%, 10% 90%, 90% 90%);
+    transform: scale(1.05);
+  }
+}
+
+/* Player Elimination - Subtle Fade */
+@keyframes player-eliminate {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: grayscale(0%);
+  }
+  50% {
+    transform: scale(0.95);
+    opacity: 0.7;
+    filter: grayscale(50%);
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 0.3;
+    filter: grayscale(100%);
+  }
+}
+
+@keyframes player-revive {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.3;
+    filter: grayscale(100%);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: grayscale(0%);
+  }
+}
+
+/* Voting Scene - Dramatic Reveal */
+@keyframes vote-reveal {
+  0% {
+    transform: rotateY(180deg);
+    opacity: 0;
+  }
+  50% {
+    transform: rotateY(90deg);
+    opacity: 0.5;
+  }
+  100% {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes vote-count {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    color: hsl(var(--squid-pink));
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Piggy Bank - Coin Drop */
+@keyframes coin-drop {
+  0% {
+    transform: translateY(-20px) rotate(0deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(10px) rotate(180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0px) rotate(360deg);
+    opacity: 1;
+  }
+}
+
+@keyframes money-stack {
+  0% {
+    transform: translateY(20px) scale(0.8);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Playground - Squid Game Movement */
+@keyframes squid-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  25% {
+    transform: translateY(-5px) scale(1.02);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.05);
+  }
+  75% {
+    transform: translateY(-3px) scale(1.02);
+  }
+}
+
+@keyframes playground-draw {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+  100% {
+    stroke-dasharray: 100 0;
+  }
+}
+
+/* Guard Synchronization */
+@keyframes guard-march {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes synchronized-blink {
+  0%,
+  90%,
+  100% {
+    opacity: 1;
+  }
+  95% {
+    opacity: 0.3;
+  }
+}
+
+/* Tension Building */
+@keyframes tension-build {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.01);
+    filter: brightness(1.1);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes heartbeat {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.02);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  75% {
+    transform: scale(1.02);
+  }
+}
+
+/* Game Start Countdown */
+@keyframes countdown-tick {
+  0% {
+    transform: scale(1) rotate(0deg);
+    color: hsl(var(--foreground));
+  }
+  50% {
+    transform: scale(1.2) rotate(5deg);
+    color: hsl(var(--squid-pink));
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    color: hsl(var(--squid-teal));
+  }
+}
+
+/* Animation Classes */
+.animate-red-light-scan {
+  animation: red-light-scan 3s ease-in-out infinite;
+}
+
+.animate-green-light-safe {
+  animation: green-light-safe 2s ease-in-out infinite;
+}
+
+.animate-glass-crack {
+  animation: glass-crack 0.5s ease-in-out;
+}
+
+.animate-glass-shatter {
+  animation: glass-shatter 0.8s ease-out forwards;
+}
+
+.animate-dalgona-carve {
+  animation: dalgona-carve 2s ease-out forwards;
+}
+
+.animate-honeycomb-reveal {
+  animation: honeycomb-reveal 0.6s ease-out;
+}
+
+.animate-marble-roll {
+  animation: marble-roll 2s linear infinite;
+}
+
+.animate-marble-bounce {
+  animation: marble-bounce 1s ease-in-out infinite;
+}
+
+.animate-mask-reveal {
+  animation: mask-reveal 1s ease-out;
+}
+
+.animate-triangle-guard {
+  animation: triangle-guard 3s ease-in-out infinite;
+}
+
+.animate-player-eliminate {
+  animation: player-eliminate 1s ease-out forwards;
+}
+
+.animate-player-revive {
+  animation: player-revive 0.5s ease-out;
+}
+
+.animate-vote-reveal {
+  animation: vote-reveal 0.8s ease-out;
+}
+
+.animate-vote-count {
+  animation: vote-count 0.3s ease-out;
+}
+
+.animate-coin-drop {
+  animation: coin-drop 1s ease-out;
+}
+
+.animate-money-stack {
+  animation: money-stack 0.5s ease-out;
+}
+
+.animate-squid-hop {
+  animation: squid-hop 2s ease-in-out infinite;
+}
+
+.animate-playground-draw {
+  animation: playground-draw 2s ease-out;
+}
+
+.animate-guard-march {
+  animation: guard-march 1s ease-in-out infinite;
+}
+
+.animate-synchronized-blink {
+  animation: synchronized-blink 3s ease-in-out infinite;
+}
+
+.animate-tension-build {
+  animation: tension-build 4s ease-in-out infinite;
+}
+
+.animate-heartbeat {
+  animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.animate-countdown-tick {
+  animation: countdown-tick 1s ease-out;
+}
+
+/* Hover Effects with Squid Game Inspiration */
+.squid-game-hover {
+  position: relative;
+  overflow: hidden;
+}
+
+.squid-game-hover::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, hsla(var(--squid-pink) / 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.squid-game-hover:hover::before {
+  left: 100%;
+}
+
+/* Red Light Green Light States */
+.red-light-state {
+  position: relative;
+}
+
+.red-light-state::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, hsla(var(--squid-pink) / 0.2), transparent);
+  animation: red-light-scan 2s ease-in-out;
+  pointer-events: none;
+}
+
+.green-light-state {
+  animation: green-light-safe 2s ease-in-out infinite;
+}
+
+/* Glass Bridge Effect for Dangerous Actions */
+.glass-bridge-step {
+  transition: all 0.3s ease;
+}
+
+.glass-bridge-step:hover {
+  animation: glass-crack 0.5s ease-in-out;
+}
+
+.glass-bridge-step.broken {
+  animation: glass-shatter 0.8s ease-out forwards;
+}
+
+/* Honeycomb Precision for Delicate Interactions */
+.honeycomb-precision {
+  transition: all 0.2s ease;
+}
+
+.honeycomb-precision:hover {
+  animation: honeycomb-reveal 0.6s ease-out;
+}
+
+/* Marble Game for Random/Chance Elements */
+.marble-game {
+  animation: marble-bounce 2s ease-in-out infinite;
+}
+
+.marble-game:hover {
+  animation: marble-roll 1s linear;
+}
+
+/* VIP Mask for Admin/Special Elements */
+.vip-mask {
+  animation: mask-reveal 1s ease-out;
+}
+
+/* Player Status Indicators */
+.player-active {
+  animation: green-light-safe 3s ease-in-out infinite;
+}
+
+.player-inactive {
+  animation: player-eliminate 1s ease-out forwards;
+}
+
+.player-warning {
+  animation: tension-build 2s ease-in-out infinite;
+}
+
+/* Game State Indicators */
+.game-starting {
+  animation: countdown-tick 1s ease-out infinite;
+}
+
+.game-active {
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+.game-danger {
+  animation: red-light-scan 1s ease-in-out infinite;
+}
+
+/* Success/Failure States */
+.success-state {
+  animation: coin-drop 1s ease-out, green-light-safe 2s ease-in-out infinite 1s;
+}
+
+.failure-state {
+  animation: glass-shatter 0.8s ease-out;
+}
+
+/* Loading States with Squid Game Flair */
+.squid-loading {
+  position: relative;
+}
+
+.squid-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsla(var(--squid-pink) / 0.3),
+    hsla(var(--squid-teal) / 0.3),
+    transparent
+  );
+  animation: red-light-scan 2s linear infinite;
+}
+
+/* Notification Animations */
+.notification-enter {
+  animation: vote-reveal 0.8s ease-out;
+}
+
+.notification-success {
+  animation: coin-drop 1s ease-out;
+}
+
+.notification-warning {
+  animation: tension-build 1s ease-out;
+}
+
+.notification-error {
+  animation: glass-crack 0.5s ease-out;
+}
+
+/* Animation Classes */
+.animate-squid-pulse {
+  animation: squid-pulse 3s ease-in-out infinite;
+}
+.animate-terminal-glow {
+  animation: terminal-glow 2s ease-in-out infinite;
+}
+.animate-cursor-blink {
+  animation: cursor-blink 1s step-end infinite;
+}
+.animate-typing-effect {
+  animation: typing-effect 2s steps(40, end);
+}
+.animate-squid-scan {
+  animation: squid-scan 3s linear infinite;
+}
+.animate-subtle-bounce {
+  animation: subtle-bounce 2s ease-in-out infinite;
+}
+.animate-terminal-fade {
+  animation: terminal-fade 0.4s ease-out;
+}
+
+/* Squid Game Terminal Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--code-bg));
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, hsl(var(--squid-pink)), hsl(var(--squid-teal)));
+  border-radius: 6px;
+  border: 2px solid hsl(var(--code-bg));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, hsl(var(--squid-pink-muted)), hsl(var(--squid-teal-muted)));
+}
+
+/* Squid Game Terminal Components */
+.squid-terminal {
+  background: hsl(var(--code-bg));
+  border: 1px solid hsl(var(--code-line));
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.squid-terminal::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--squid-pink)), hsl(var(--squid-teal)), hsl(var(--squid-pink)));
+}
+
+.squid-terminal-header {
+  background: hsl(var(--code-bg-light));
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(var(--code-line));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.terminal-dot-red {
+  background-color: hsl(var(--squid-pink));
+}
+.terminal-dot-yellow {
+  background-color: hsl(var(--code-number));
+}
+.terminal-dot-green {
+  background-color: hsl(var(--squid-teal));
+}
+
+.squid-button {
+  background: linear-gradient(135deg, hsla(var(--squid-pink) / 0.9) 0%, hsla(var(--squid-pink) / 0.7) 100%);
+  color: white;
+  border: 1px solid hsl(var(--squid-pink));
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 600;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px hsla(var(--squid-pink) / 0.2);
+}
+
+.squid-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, hsla(var(--squid-teal) / 0.3), transparent);
+  transition: left 0.5s;
+}
+
+.squid-button:hover::before {
+  left: 100%;
+}
+
+.squid-button:hover {
+  background: linear-gradient(135deg, hsla(var(--squid-pink) / 0.8) 0%, hsla(var(--squid-teal) / 0.8) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px hsla(var(--squid-pink) / 0.3);
+}
+
+.squid-nav-item {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.squid-nav-item::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsla(var(--squid-pink) / 0.1),
+    hsla(var(--squid-teal) / 0.1),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.squid-nav-item:hover::before {
+  left: 100%;
+}
+
+.squid-nav-item:hover {
+  background: hsla(var(--code-selection-bg));
+  transform: translateX(4px);
+}
+
+.squid-nav-item.active {
+  background: hsla(var(--code-selection-bg));
+  border-left: 3px solid hsl(var(--squid-pink));
+  color: hsl(var(--squid-pink));
+  transform: translateX(2px);
+}
+
+/* Squid Game Code Syntax */
+.squid-keyword {
+  color: hsl(var(--code-keyword));
+  font-weight: 600;
+}
+.squid-function {
+  color: hsl(var(--code-function));
+  font-weight: 500;
+}
+.squid-string {
+  color: hsl(var(--code-string));
+}
+.squid-number {
+  color: hsl(var(--code-number));
+}
+.squid-comment {
+  color: hsl(var(--code-comment));
+  font-style: italic;
+}
+.squid-operator {
+  color: hsl(var(--code-operator));
+  font-weight: 600;
+}
+
+/* Squid Game Badges */
+.squid-badge-pink {
+  background: hsla(var(--squid-pink) / 0.15);
+  color: hsl(var(--squid-pink));
+  border: 1px solid hsla(var(--squid-pink) / 0.3);
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.squid-badge-teal {
+  background: hsla(var(--squid-teal) / 0.15);
+  color: hsl(var(--squid-teal));
+  border: 1px solid hsla(var(--squid-teal) / 0.3);
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.squid-badge-gray {
+  background: hsla(var(--code-comment) / 0.15);
+  color: hsl(var(--code-comment));
+  border: 1px solid hsla(var(--code-comment) / 0.3);
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Interactive Elements */
+.squid-interactive {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.squid-interactive:hover {
+  transform: translateY(-1px);
+}
+
+.squid-interactive:active {
+  transform: translateY(0);
+}
+
+/* Focus States */
+.squid-focus:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px hsla(var(--squid-pink) / 0.5);
+}
+
+/* Terminal Background */
+.squid-terminal-bg {
+  background-color: hsl(var(--code-bg));
+  /* Squid Game pattern */
+  background-image: radial-gradient(circle at 25% 25%, hsla(var(--squid-pink) / 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, hsla(var(--squid-teal) / 0.05) 0%, transparent 50%), /* Terminal grid */
+    linear-gradient(hsla(var(--squid-pink) / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, hsla(var(--squid-pink) / 0.08) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 20px 20px, 20px 20px;
+}
+
+/* Typography */
+.squid-title {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 700;
+  background: linear-gradient(135deg, hsl(var(--squid-pink)) 0%, hsl(var(--squid-teal)) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.squid-subtitle {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  font-weight: 500;
+  color: hsl(var(--squid-pink));
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Terminal Prompt */
+.terminal-prompt {
+  font-family: "JetBrains Mono", "Fira Code", "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  color: hsl(var(--foreground));
+}
+
+.terminal-prompt::before {
+  content: "$ ";
+  color: hsl(var(--squid-teal));
+  font-weight: 600;
+}
+
+/* Code Cursor */
+.squid-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background-color: hsl(var(--squid-teal));
+  vertical-align: middle;
+  animation: cursor-blink 1s step-end infinite;
+}
+
+/* Loading Animation */
+.squid-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.squid-loading::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsla(var(--squid-pink) / 0.2),
+    hsla(var(--squid-teal) / 0.2),
+    transparent
+  );
+  animation: squid-scan 1.5s linear infinite;
+}
+
+/* Status Indicators */
+.status-online {
+  background-color: hsl(var(--squid-teal));
+  animation: squid-pulse 2s ease-in-out infinite;
+}
+
+.status-coding {
+  background-color: hsl(var(--squid-pink));
+  animation: squid-pulse 2s ease-in-out infinite;
+}
+
+.status-away {
+  background-color: hsl(var(--code-number));
+}
+
+.status-offline {
+  background-color: hsl(var(--code-comment));
+}
+
+/* Message Bubbles */
+.message-own {
+  background: linear-gradient(135deg, hsl(var(--squid-pink)) 0%, hsla(var(--squid-pink) / 0.9) 100%);
+  color: white;
+  border: 1px solid hsl(var(--squid-pink));
+}
+
+.message-other {
+  background: hsla(var(--code-bg-light));
+  border: 1px solid hsl(var(--code-line));
+  color: hsl(var(--foreground));
+}
+
+.message-ai-enhanced {
+  position: relative;
+}
+
+.message-ai-enhanced::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  right: -1px;
+  bottom: -1px;
+  background: linear-gradient(45deg, hsl(var(--squid-pink)), hsl(var(--squid-teal)), hsl(var(--squid-pink)));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0.3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .squid-terminal {
+    border-radius: 6px;
+  }
+
+  .squid-button {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .squid-nav-item {
+    font-size: 0.875rem;
+  }
+}
+
+/* Line clamp utility */
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
