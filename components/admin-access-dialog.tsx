@@ -37,7 +37,7 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
     // Simulate loading delay
     await new Promise((resolve) => setTimeout(resolve, 500))
 
-    if (password === "0000") {
+    if (password === "2935") {
       soundManager.playSuccessSound()
       onOpenChange(false)
       setPassword("")
@@ -118,7 +118,7 @@ export function AdminAccessDialog({ open, onOpenChange }: AdminAccessDialogProps
         </form>
 
         <div className="text-xs text-center text-muted-foreground mt-4">
-          Hint: The password is a 4-digit number starting with 0
+          Hint: The password is a 4-digit number 
         </div>
       </DialogContent>
     </Dialog>
