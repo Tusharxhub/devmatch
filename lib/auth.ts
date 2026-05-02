@@ -5,14 +5,32 @@ import GitHubProvider from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { enqueueGithubSync, enqueueMatchCompute } from "@/lib/queue";
+import { env } from "@/lib/env";
+
+function logInfo(event: string, context?: Record<string, unknown>) {
+  console.info(`[Auth] ${event}`, context ?? {});
+}
+
+function logWarn(event: string, context?: Record<string, unknown>) {
+  console.warn(`[Auth] ${event}`, context ?? {});
+}
+
+function logError(event: string, error: unknown, context?: Record<string, unknown>) {
+  const err = error instanceof Error ? error : new Error("Unknown error");
+  console.error(`[Auth] ${event}`, {
+    ...context,
+    name: err.name,
+    message: err.message,
+  });
+}
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions["adapter"],
 
   providers: [
     GitHubProvider({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
+      clientId: env.GITHUB_ID,
+      clientSecret: env.GITHUB_SECRET,
       authorization: {
         params: {
           scope: "read:user user:email repo",
@@ -30,6 +48,30 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
+    async jwt({ token, user, profile, account }) {
+      if (user?.id) {
+        token.id = user.id;
+      } else if (!token.id && token.sub) {
+        token.id = token.sub;
+      }
+
+      if (account?.provider === "github" && profile) {
+        token.githubUsername = (profile as { login?: string }).login;
+      }
+
+      if (!token.githubUsername && token.id) {
+        const githubProfile = await prisma.githubProfile.findUnique({
+          where: { userId: token.id },
+          select: { username: true },
+        });
+        if (githubProfile?.username) {
+          token.githubUsername = githubProfile.username;
+        }
+      }
+
+      return token;
+    },
+
     async signIn({ user, account, profile }) {
       if (account?.provider === "github" && profile) {
         const githubProfile = profile as {
@@ -64,11 +106,14 @@ export const authOptions: NextAuthOptions = {
               githubUsername: githubProfile.login,
               accessToken: account.access_token,
             }).catch((err) => {
-              console.error("[Auth] Failed to enqueue GitHub sync:", err.message);
+              logWarn("github_sync_enqueue_failed", {
+                userId: user.id,
+                reason: err instanceof Error ? err.message : "unknown",
+              });
             });
           }
         } catch (error) {
-          console.error("[Auth] Error during signIn callback:", error);
+          logError("signin_callback_error", error, { userId: user.id });
           // Don't block sign-in on profile sync failure
         }
       }
@@ -76,33 +121,44 @@ export const authOptions: NextAuthOptions = {
       return true;
     },
 
-    async session({ session, user }) {
+    async session({ session, token }) {
+      const userId = token.id ?? token.sub;
+
       if (session.user) {
-        session.user.id = user.id;
+        session.user.id = userId ?? "";
 
-        // Attach GitHub username to session
-        const githubProfile = await prisma.githubProfile.findUnique({
-          where: { userId: user.id },
-          select: { username: true },
-        });
-
-        if (githubProfile) {
+        if (token.githubUsername) {
           (session.user as { githubUsername?: string }).githubUsername =
-            githubProfile.username;
+            token.githubUsername;
+        }
+
+        if (!token.githubUsername && userId) {
+          const githubProfile = await prisma.githubProfile.findUnique({
+            where: { userId },
+            select: { username: true },
+          });
+
+          if (githubProfile) {
+            (session.user as { githubUsername?: string }).githubUsername =
+              githubProfile.username;
+          }
         }
       }
 
       // Update online status
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { onlineStatus: true, lastSeenAt: new Date() },
-      }).catch(() => {});
+      if (userId) {
+        await prisma.user.update({
+          where: { id: userId },
+          data: { onlineStatus: true, lastSeenAt: new Date() },
+        }).catch(() => {});
+      }
 
       return session;
     },
 
     async redirect({ url, baseUrl }) {
-      // After sign in, redirect to dashboard
+      // Keep users away from auth pages after successful sign in.
+      if (url.startsWith("/auth")) return `${baseUrl}/dashboard`;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       if (new URL(url).origin === baseUrl) return url;
       return `${baseUrl}/dashboard`;
@@ -111,7 +167,7 @@ export const authOptions: NextAuthOptions = {
 
   events: {
     async createUser({ user }) {
-      console.log(`[Auth] New user created: ${user.id}`);
+      logInfo("user_created", { userId: user.id });
 
       // Create default user intent
       await prisma.userIntent.create({
@@ -125,34 +181,29 @@ export const authOptions: NextAuthOptions = {
     },
 
     async signIn({ user }) {
-      console.log(`[Auth] User signed in: ${user.id}`);
+      logInfo("user_signed_in", { userId: user.id });
 
       // Re-trigger match computation on each sign-in
       await enqueueMatchCompute({
         userId: user.id!,
       }).catch((err) => {
-        console.error("[Auth] Failed to enqueue match compute:", err.message);
+        logWarn("match_compute_enqueue_failed", {
+          userId: user.id,
+          reason: err instanceof Error ? err.message : "unknown",
+        });
       });
     },
 
     async signOut(message) {
-      // Update offline status - session-based signOut includes a session object
-      const session = 'session' in message ? message.session : null;
-      if (session) {
-        // Extract user ID from session by querying the session token
+      const token = "token" in message ? message.token : null;
+      if (token?.sub) {
         try {
-          const dbSession = await prisma.session.findUnique({
-            where: { sessionToken: (session as { sessionToken?: string }).sessionToken || '' },
-            select: { userId: true },
+          await prisma.user.update({
+            where: { id: token.sub },
+            data: { onlineStatus: false, lastSeenAt: new Date() },
           });
-          if (dbSession) {
-            await prisma.user.update({
-              where: { id: dbSession.userId },
-              data: { onlineStatus: false, lastSeenAt: new Date() },
-            });
-          }
         } catch {
-          // Silently fail - user is signing out anyway
+          // Silently fail - user is signing out anyway.
         }
       }
     },
@@ -164,10 +215,10 @@ export const authOptions: NextAuthOptions = {
   },
 
   session: {
-    strategy: "database",
+    strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 
-  secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
+  secret: env.NEXTAUTH_SECRET,
+  debug: false,
 };

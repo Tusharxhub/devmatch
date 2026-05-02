@@ -2,13 +2,12 @@
 // BullMQ job queue for background processing
 import { Queue, Worker, Job, QueueEvents } from "bullmq";
 import Redis from "ioredis";
+import { env } from "@/lib/env";
+import { bullMqConnectionOptions } from "@/lib/redis";
 
 // Create a separate Redis connection for BullMQ (required by BullMQ)
 function createBullConnection() {
-  return new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
-    maxRetriesPerRequest: null, // Required by BullMQ
-    enableReadyCheck: false,
-  });
+  return new Redis(env.REDIS_URL, bullMqConnectionOptions);
 }
 
 // ─── Queue Definitions ────────────────────────────────────────────────────────
