@@ -1,87 +1,173 @@
-import { createClient } from "./supabase-browser"
-import type { User } from "@supabase/supabase-js"
+// lib/auth.ts
+// NextAuth configuration with GitHub OAuth + Prisma adapter
+import { NextAuthOptions } from "next-auth";
+import GitHubProvider from "next-auth/providers/github";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+import { enqueueGithubSync, enqueueMatchCompute } from "@/lib/queue";
 
-// Get the singleton client instance
-const getSupabaseClient = () => createClient()
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma) as NextAuthOptions["adapter"],
 
-export const signInWithGitHub = async () => {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "github",
-    options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
-      scopes: "read:user user:email",
+  providers: [
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID!,
+      clientSecret: process.env.GITHUB_SECRET!,
+      authorization: {
+        params: {
+          scope: "read:user user:email repo",
+        },
+      },
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name || profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+        };
+      },
+    }),
+  ],
+
+  callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "github" && profile) {
+        const githubProfile = profile as {
+          login: string;
+          id: number;
+          avatar_url: string;
+          html_url: string;
+        };
+
+        try {
+          // Upsert GitHub profile data
+          await prisma.githubProfile.upsert({
+            where: { githubId: githubProfile.id },
+            update: {
+              username: githubProfile.login,
+              avatarUrl: githubProfile.avatar_url,
+              profileUrl: githubProfile.html_url,
+            },
+            create: {
+              userId: user.id,
+              githubId: githubProfile.id,
+              username: githubProfile.login,
+              avatarUrl: githubProfile.avatar_url,
+              profileUrl: githubProfile.html_url,
+            },
+          });
+
+          // Enqueue background job to fetch detailed GitHub data
+          if (account.access_token) {
+            await enqueueGithubSync({
+              userId: user.id,
+              githubUsername: githubProfile.login,
+              accessToken: account.access_token,
+            }).catch((err) => {
+              console.error("[Auth] Failed to enqueue GitHub sync:", err.message);
+            });
+          }
+        } catch (error) {
+          console.error("[Auth] Error during signIn callback:", error);
+          // Don't block sign-in on profile sync failure
+        }
+      }
+
+      return true;
     },
-  })
 
-  if (error) throw error
-  return data
-}
+    async session({ session, user }) {
+      if (session.user) {
+        session.user.id = user.id;
 
-export const signInWithEmail = async (email: string, password: string) => {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+        // Attach GitHub username to session
+        const githubProfile = await prisma.githubProfile.findUnique({
+          where: { userId: user.id },
+          select: { username: true },
+        });
 
-  if (error) throw error
-  return data
-}
+        if (githubProfile) {
+          (session.user as { githubUsername?: string }).githubUsername =
+            githubProfile.username;
+        }
+      }
 
-export const signUpWithEmail = async (email: string, password: string, name: string) => {
-  const supabase = getSupabaseClient()
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { name },
+      // Update online status
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { onlineStatus: true, lastSeenAt: new Date() },
+      }).catch(() => {});
+
+      return session;
     },
-  })
 
-  if (error) throw error
-  return data
-}
+    async redirect({ url, baseUrl }) {
+      // After sign in, redirect to dashboard
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      if (new URL(url).origin === baseUrl) return url;
+      return `${baseUrl}/dashboard`;
+    },
+  },
 
-export const signOut = async () => {
-  const supabase = getSupabaseClient()
-  const { error } = await supabase.auth.signOut()
-  if (error) throw error
-}
+  events: {
+    async createUser({ user }) {
+      console.log(`[Auth] New user created: ${user.id}`);
 
-export const getCurrentUser = async (): Promise<User | null> => {
-  const supabase = getSupabaseClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-  if (error) throw error
-  return user
-}
+      // Create default user intent
+      await prisma.userIntent.create({
+        data: {
+          userId: user.id,
+          lookingFor: ["collaborator"],
+          projectInterests: ["web"],
+          availableHours: 10,
+        },
+      }).catch(() => {});
+    },
 
-export const updateUserProfile = async (updates: {
-  name?: string
-  bio?: string
-  location?: string
-  github_username?: string
-  stackoverflow_username?: string
-  availability?: boolean
-}) => {
-  const supabase = getSupabaseClient()
-  const user = await getCurrentUser()
-  if (!user) throw new Error("No authenticated user")
+    async signIn({ user }) {
+      console.log(`[Auth] User signed in: ${user.id}`);
 
-  const { data, error } = await supabase
-    .from("users")
-    .upsert({
-      id: user.id,
-      email: user.email!,
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
-    .select()
-    .single()
+      // Re-trigger match computation on each sign-in
+      await enqueueMatchCompute({
+        userId: user.id!,
+      }).catch((err) => {
+        console.error("[Auth] Failed to enqueue match compute:", err.message);
+      });
+    },
 
-  if (error) throw error
-  return data
-}
+    async signOut(message) {
+      // Update offline status - session-based signOut includes a session object
+      const session = 'session' in message ? message.session : null;
+      if (session) {
+        // Extract user ID from session by querying the session token
+        try {
+          const dbSession = await prisma.session.findUnique({
+            where: { sessionToken: (session as { sessionToken?: string }).sessionToken || '' },
+            select: { userId: true },
+          });
+          if (dbSession) {
+            await prisma.user.update({
+              where: { id: dbSession.userId },
+              data: { onlineStatus: false, lastSeenAt: new Date() },
+            });
+          }
+        } catch {
+          // Silently fail - user is signing out anyway
+        }
+      }
+    },
+  },
+
+  pages: {
+    signIn: "/auth/signin",
+    error: "/auth/error",
+  },
+
+  session: {
+    strategy: "database",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
+};

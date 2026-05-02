@@ -1,20 +1,23 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    serverActions: {
-      allowedOrigins: ["localhost:3000"],
-    },
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  output: "standalone",
+  reactStrictMode: true,
   images: {
-    domains: ["avatars.githubusercontent.com", "github.com"],
-    unoptimized: true,
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "avatars.githubusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "github.com",
+      },
+    ],
   },
-}
+  // Ensure server-only modules don't leak to client
+  experimental: {
+    serverComponentsExternalPackages: ["@prisma/client", "bcryptjs"],
+  },
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,0 +1,106 @@
+# ═══════════════════════════════════════════════════════════════════════════════
+# DevMatch v2 — Docker Compose
+# ═══════════════════════════════════════════════════════════════════════════════
+
+services:
+  # ─── Next.js App ───────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    container_name: devmatch-app
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://devmatch:devmatch_secret@postgres:5432/devmatch?schema=public
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - GITHUB_ID=${GITHUB_ID}
+      - GITHUB_SECRET=${GITHUB_SECRET}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - PUSHER_APP_ID=${PUSHER_APP_ID}
+      - PUSHER_KEY=${PUSHER_KEY}
+      - PUSHER_SECRET=${PUSHER_SECRET}
+      - PUSHER_CLUSTER=${PUSHER_CLUSTER:-us2}
+      - NEXT_PUBLIC_PUSHER_KEY=${PUSHER_KEY}
+      - NEXT_PUBLIC_PUSHER_CLUSTER=${PUSHER_CLUSTER:-us2}
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - devmatch-network
+
+  # ─── Background Worker ────────────────────────────────────────────────────
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: worker
+    container_name: devmatch-worker
+    environment:
+      - DATABASE_URL=postgresql://devmatch:devmatch_secret@postgres:5432/devmatch?schema=public
+      - REDIS_URL=redis://redis:6379
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - devmatch-network
+
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: devmatch-postgres
+    environment:
+      POSTGRES_USER: devmatch
+      POSTGRES_PASSWORD: devmatch_secret
+      POSTGRES_DB: devmatch
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U devmatch -d devmatch"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - devmatch-network
+
+  # ─── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: devmatch-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - devmatch-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  devmatch-network:
+    driver: bridge
