@@ -83,10 +83,10 @@ export default function MatchesPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Users className="w-6 h-6 text-violet-400" />
-            Your Matches
+            Developer Profiles
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Developers ranked by compatibility score
+            All developers fetched from the database
           </p>
         </div>
 
@@ -121,9 +121,9 @@ export default function MatchesPage() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-20">
           <Users className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">No matches found</h2>
+          <h2 className="text-lg font-semibold mb-2">No profiles found</h2>
           <p className="text-sm text-muted-foreground">
-            Your matches are being computed. Check back shortly!
+            No user profiles are available yet.
           </p>
         </div>
       ) : (
