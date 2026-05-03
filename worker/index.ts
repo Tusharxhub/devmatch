@@ -85,7 +85,7 @@ async function processGithubSync(job: Job<GithubSyncJobData>): Promise<void> {
     }
 
     // Cache the profile data
-    await setCache(`github:profile:${userId}`, data, 3600);
+    await setCache(`github:profile:${userId}`, data, 3600).catch(() => {});
 
     console.log(`[GithubSync] Completed for ${githubUsername}`);
     await job.updateProgress(100);
@@ -98,7 +98,7 @@ async function processGithubSync(job: Job<GithubSyncJobData>): Promise<void> {
 // ─── Match Compute Processor ──────────────────────────────────────────────────
 
 async function processMatchCompute(job: Job<MatchComputeJobData>): Promise<void> {
-  const { userId, recomputeAll } = job.data;
+  const { userId } = job.data;
   console.log(`[MatchCompute] Computing matches for user: ${userId}`);
 
   try {
@@ -185,7 +185,7 @@ async function processMatchCompute(job: Job<MatchComputeJobData>): Promise<void>
     }
 
     // Invalidate cached matches
-    await setCache(`matches:${userId}`, null, 1);
+    await setCache(`matches:${userId}`, null, 1).catch(() => {});
 
     console.log(`[MatchCompute] Completed ${processed} match pairs for user ${userId}`);
   } catch (error) {

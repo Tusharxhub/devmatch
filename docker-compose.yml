@@ -23,9 +23,9 @@ services:
       - PUSHER_APP_ID=${PUSHER_APP_ID}
       - PUSHER_KEY=${PUSHER_KEY}
       - PUSHER_SECRET=${PUSHER_SECRET}
-      - PUSHER_CLUSTER=${PUSHER_CLUSTER:-us2}
+      - PUSHER_CLUSTER=${PUSHER_CLUSTER:-ap2}
       - NEXT_PUBLIC_PUSHER_KEY=${PUSHER_KEY}
-      - NEXT_PUBLIC_PUSHER_CLUSTER=${PUSHER_CLUSTER:-us2}
+      - NEXT_PUBLIC_PUSHER_CLUSTER=${PUSHER_CLUSTER:-ap2}
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
     depends_on:
       postgres:
@@ -44,6 +44,7 @@ services:
       target: worker
     container_name: devmatch-worker
     environment:
+      - DEVMATCH_SERVICE=worker
       - DATABASE_URL=postgresql://devmatch:devmatch_secret@postgres:5432/devmatch?schema=public
       - REDIS_URL=redis://redis:6379
       - GITHUB_TOKEN=${GITHUB_TOKEN}
@@ -85,7 +86,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

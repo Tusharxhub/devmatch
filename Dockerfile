@@ -60,14 +60,14 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-EXPOSE 3333
+EXPOSE 3000
 
-ENV PORT=3333
+ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3333/api/health || exit 1
+  CMD curl -f http://localhost:3000/api/health || exit 1
 
 CMD ["node", "server.js"]
 
@@ -81,12 +81,10 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/prisma ./prisma
 
 # Copy only worker-relevant source files
+COPY package.json ./
+COPY tsconfig.json ./
 COPY lib ./lib
 COPY worker ./worker
-COPY tsconfig.json ./
-
-# Install tsx for running TypeScript directly
-RUN npx tsx --version || true
 
 ENV NODE_ENV=production
 

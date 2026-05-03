@@ -84,7 +84,8 @@ query UserProfile($username: String!) {
 async function graphqlRequest<T>(
   query: string,
   variables: Record<string, unknown>,
-  token: string
+  token: string,
+  retries = 2
 ): Promise<T> {
   const res = await fetch(GITHUB_GRAPHQL_URL, {
     method: "POST",
@@ -95,9 +96,42 @@ async function graphqlRequest<T>(
     },
     body: JSON.stringify({ query, variables }),
   });
-  if (!res.ok) throw new Error(`GitHub API error (${res.status})`);
+
+  // Handle rate limiting
+  if (res.status === 403 || res.status === 429) {
+    const retryAfter = res.headers.get("retry-after");
+    const rateLimitRemaining = res.headers.get("x-ratelimit-remaining");
+
+    if (rateLimitRemaining === "0" || res.status === 429) {
+      const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 60_000;
+      if (retries > 0) {
+        console.warn(`[GitHub] Rate limited, waiting ${waitMs / 1000}s before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, Math.min(waitMs, 120_000)));
+        return graphqlRequest<T>(query, variables, token, retries - 1);
+      }
+      throw new Error(`GitHub API rate limited. Retry after ${waitMs / 1000}s`);
+    }
+  }
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`GitHub API error (${res.status}): ${body.slice(0, 200)}`);
+  }
+
   const json = await res.json();
-  if (json.errors) throw new Error(json.errors[0].message);
+  if (json.errors) {
+    // Check for rate-limit errors in the GraphQL response
+    const rateLimited = json.errors.some(
+      (e: { type?: string }) => e.type === "RATE_LIMITED"
+    );
+    if (rateLimited && retries > 0) {
+      console.warn("[GitHub] GraphQL rate limited, retrying in 60s...");
+      await new Promise((resolve) => setTimeout(resolve, 60_000));
+      return graphqlRequest<T>(query, variables, token, retries - 1);
+    }
+    throw new Error(json.errors[0].message);
+  }
+
   return json.data;
 }
 

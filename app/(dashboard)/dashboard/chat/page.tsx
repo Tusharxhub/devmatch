@@ -1,7 +1,7 @@
 // app/(dashboard)/dashboard/chat/page.tsx
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import {
@@ -12,6 +12,8 @@ import {
   ArrowLeft,
   Loader2,
   Circle,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -44,11 +46,88 @@ export default function ChatPage() {
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [pusherConnected, setPusherConnected] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pusherChannelRef = useRef<ReturnType<typeof import("pusher-js").default.prototype.subscribe> | null>(null);
+  const pusherClientRef = useRef<InstanceType<typeof import("pusher-js").default> | null>(null);
 
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  // Set up Pusher real-time subscription when partner changes
+  useEffect(() => {
+    if (!selectedPartner || !session?.user?.id) return;
+
+    let channel: ReturnType<typeof import("pusher-js").default.prototype.subscribe>;
+
+    async function setupPusher() {
+      try {
+        const { getPusherClient, CHANNELS, EVENTS } = await import("@/lib/pusher");
+        const client = getPusherClient();
+        pusherClientRef.current = client;
+
+        const channelName = CHANNELS.chat(session!.user.id, selectedPartner!.id);
+
+        // Unsubscribe from previous channel
+        if (pusherChannelRef.current) {
+          pusherChannelRef.current.unbind_all();
+          client.unsubscribe(pusherChannelRef.current.name);
+        }
+
+        channel = client.subscribe(channelName);
+        pusherChannelRef.current = channel;
+
+        channel.bind("pusher:subscription_succeeded", () => {
+          setPusherConnected(true);
+        });
+
+        channel.bind("pusher:subscription_error", () => {
+          setPusherConnected(false);
+        });
+
+        channel.bind(EVENTS.NEW_MESSAGE, (data: { message: Message; senderId: string }) => {
+          // Only add if the message isn't from us (we already added it optimistically)
+          if (data.senderId !== session!.user.id) {
+            setMessages((prev) => {
+              // Deduplicate by checking ID
+              if (prev.some((m) => m.id === data.message.id)) return prev;
+              return [...prev, data.message];
+            });
+          }
+        });
+
+        channel.bind(EVENTS.USER_TYPING, (data: { userId: string }) => {
+          // Future: show typing indicator
+        });
+      } catch (err) {
+        console.warn("[Chat] Pusher setup failed, using polling fallback:", err);
+        setPusherConnected(false);
+      }
+    }
+
+    setupPusher();
+
+    return () => {
+      if (pusherChannelRef.current && pusherClientRef.current) {
+        pusherChannelRef.current.unbind_all();
+        pusherClientRef.current.unsubscribe(pusherChannelRef.current.name);
+        pusherChannelRef.current = null;
+      }
+      setPusherConnected(false);
+    };
+  }, [selectedPartner, session?.user?.id]);
+
+  // Polling fallback when Pusher isn't connected
+  useEffect(() => {
+    if (pusherConnected || !selectedPartner) return;
+
+    const interval = setInterval(() => {
+      fetchMessages(selectedPartner.id);
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [pusherConnected, selectedPartner]);
 
   useEffect(() => {
     if (selectedPartner) fetchMessages(selectedPartner.id);
@@ -84,20 +163,27 @@ export default function ChatPage() {
     e.preventDefault();
     if (!newMessage.trim() || !selectedPartner || sending) return;
 
+    const content = newMessage.trim();
     setSending(true);
+    setNewMessage("");
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ receiverId: selectedPartner.id, content: newMessage }),
+        body: JSON.stringify({ receiverId: selectedPartner.id, content }),
       });
       const data = await res.json();
       if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
-        setNewMessage("");
+        setMessages((prev) => {
+          // Deduplicate
+          if (prev.some((m) => m.id === data.message.id)) return prev;
+          return [...prev, data.message];
+        });
       }
     } catch {
       console.error("Failed to send message");
+      setNewMessage(content); // Restore on failure
     } finally {
       setSending(false);
     }
@@ -189,16 +275,32 @@ export default function ChatPage() {
                       <Circle className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 fill-emerald-500 text-emerald-500" />
                     )}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <p className="text-sm font-semibold">{selectedPartner.name}</p>
                     <p className="text-[10px] text-muted-foreground">
                       {selectedPartner.onlineStatus ? "Online" : "Offline"}
                     </p>
                   </div>
+                  {/* Real-time indicator */}
+                  <div className="flex items-center gap-1.5" title={pusherConnected ? "Real-time connected" : "Polling mode"}>
+                    {pusherConnected ? (
+                      <Wifi className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <WifiOff className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
 
                 {/* Messages */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {messages.length === 0 && (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <MessageSquare className="w-10 h-10 text-muted-foreground/10 mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground">No messages yet. Say hello!</p>
+                      </div>
+                    </div>
+                  )}
                   {messages.map((msg) => {
                     const isMe = msg.senderId === session?.user?.id;
                     return (
