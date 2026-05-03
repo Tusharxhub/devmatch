@@ -32,6 +32,22 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
+# Build-time args for required env vars so `next build` won't fail during Docker image build.
+ARG DATABASE_URL
+ARG REDIS_URL
+ARG GITHUB_ID
+ARG GITHUB_SECRET
+ARG NEXTAUTH_SECRET
+ARG NEXTAUTH_URL
+
+# Provide safe defaults for build; runtime values will come from docker-compose environment.
+ENV DATABASE_URL=${DATABASE_URL:-postgresql://devmatch:devmatch_secret@postgres:5432/devmatch?schema=public}
+ENV REDIS_URL=${REDIS_URL:-redis://redis:6379}
+ENV GITHUB_ID=${GITHUB_ID:-dev}
+ENV GITHUB_SECRET=${GITHUB_SECRET:-dev}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-dev}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+
 # Build Next.js application
 RUN npm run build
 
