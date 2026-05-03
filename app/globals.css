@@ -37,6 +37,41 @@
   }
 }
 
+@layer utilities {
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes blob-slow {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+      transform: translate3d(12px, -18px, 0) scale(1.06);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in-up 700ms ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: fade-in-up 900ms ease-out both;
+  }
+
+  .animate-blob-slow {
+    animation: blob-slow 12s ease-in-out infinite;
+  }
+}
+
 /* ─── Scrollbar ──────────────────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: hsl(222 47% 6%); }

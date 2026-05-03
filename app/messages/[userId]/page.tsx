@@ -18,6 +18,8 @@ import {
   WifiOff,
   ExternalLink,
 } from "lucide-react";
+import Container from "@/components/ui/container";
+import MessageBubble from "@/components/ui/message-bubble";
 import { formatDistanceToNow } from "date-fns";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -273,11 +275,12 @@ export default function ChatPage() {
   // ─── Render ──────────────────────────────────────────────────────────────────
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div
-        className="glass rounded-xl overflow-hidden flex flex-col"
-        style={{ height: "calc(100vh - 8rem)" }}
-      >
+    <Container>
+      <div className="max-w-4xl mx-auto">
+        <div
+          className="glass rounded-xl overflow-hidden flex flex-col"
+          style={{ height: "calc(100vh - 8rem)" }}
+        >
         {/* ─── Chat header ──────────────────────────────────────────── */}
         <div className="h-16 flex items-center gap-3 px-5 border-b border-white/5 shrink-0">
           <Link
@@ -346,103 +349,49 @@ export default function ChatPage() {
 
         {/* ─── Messages area ─────────────────────────────────────────── */}
         <div className="flex-1 overflow-y-auto p-5 space-y-3">
-          {messages.length === 0 && (
+          {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
                 <MessageSquare className="w-12 h-12 text-muted-foreground/10 mx-auto mb-3" />
                 <p className="text-sm text-muted-foreground">
-                  No messages yet — say hello to{" "}
-                  <span className="text-foreground font-medium">
-                    {partner?.name?.split(" ")[0]}
-                  </span>
-                  !
+                  No messages yet — say hello to {" "}
+                  <span className="text-foreground font-medium">{partner?.name?.split(" ")[0]}</span>!
                 </p>
               </div>
             </div>
+          ) : (
+            messages.map((msg) => {
+              const isMe = msg.senderId === session?.user?.id;
+              return <MessageBubble key={msg.id} message={msg} isMe={isMe} />;
+            })
           )}
-
-          {messages.map((msg) => {
-            const isMe = msg.senderId === session?.user?.id;
-            return (
-              <div
-                key={msg.id}
-                className={`flex ${isMe ? "justify-end" : "justify-start"}`}
-              >
-                {/* Receiver avatar */}
-                {!isMe && (
-                  <div className="mr-2 mt-auto shrink-0">
-                    {msg.sender?.image ? (
-                      <Image
-                        src={msg.sender.image}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-violet-500/20 flex items-center justify-center">
-                        <Users className="w-3 h-3 text-violet-400" />
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div
-                  className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                    isMe
-                      ? "bg-gradient-to-r from-violet-600 to-violet-700 text-white rounded-br-md"
-                      : "bg-white/[0.05] border border-white/5 rounded-bl-md"
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed break-words">
-                    {msg.content}
-                  </p>
-                  <p
-                    className={`text-[10px] mt-1 ${
-                      isMe ? "text-white/40" : "text-muted-foreground"
-                    }`}
-                  >
-                    {formatDistanceToNow(new Date(msg.createdAt), {
-                      addSuffix: true,
-                    })}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
           <div ref={messagesEndRef} />
         </div>
 
         {/* ─── Message input ──────────────────────────────────────────── */}
-        <form
-          onSubmit={handleSend}
-          className="p-4 border-t border-white/5 shrink-0"
-        >
-          <div className="flex items-center gap-3">
+        <form onSubmit={handleSend} className="p-4 border-t border-white/5 shrink-0 bg-transparent">
+          <div className="flex flex-col sm:flex-row items-center gap-3">
             <input
               ref={inputRef}
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder={`Message ${partner?.name?.split(" ")[0] || ""}...`}
-              className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] text-sm outline-none focus:ring-1 focus:ring-violet-500/30 border border-white/5 placeholder:text-muted-foreground/50"
+              className="flex-1 px-4 py-3 rounded-xl bg-white/[0.03] text-sm outline-none focus:ring-1 focus:ring-violet-500/30 border border-white/5 placeholder:text-muted-foreground/50 w-full"
               autoFocus
               disabled={sending}
             />
             <button
               type="submit"
               disabled={!newMessage.trim() || sending}
-              className="w-11 h-11 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition-opacity shrink-0"
+              className="mt-2 sm:mt-0 sm:w-auto w-full px-4 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 flex items-center justify-center text-white disabled:opacity-40 hover:opacity-90 transition-opacity"
             >
-              {sending ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
+              {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
             </button>
           </div>
         </form>
       </div>
-    </div>
+      </div>
+    </Container>
   );
 }
