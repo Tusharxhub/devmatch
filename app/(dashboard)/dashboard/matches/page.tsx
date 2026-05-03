@@ -2,6 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   Users,
@@ -46,6 +47,7 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [minScore, setMinScore] = useState(0);
+  const router = useRouter();
   const [selectedMatch, setSelectedMatch] = useState<MatchData | null>(null);
 
   useEffect(() => {
@@ -283,7 +285,14 @@ export default function MatchesPage() {
               >
                 <ArrowUpRight className="w-4 h-4" /> GitHub
               </a>
-              <button className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-sm font-medium hover:opacity-90 transition-opacity">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedMatch(null);
+                  router.push(`/messages/${selectedMatch.targetUser.id}`);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-sm font-medium hover:opacity-90 transition-opacity"
+              >
                 <MessageSquare className="w-4 h-4" /> Message
               </button>
             </div>
