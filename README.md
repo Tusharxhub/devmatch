@@ -419,7 +419,7 @@ MIT License - See LICENSE file for details
 
 ## Author
 
-**Tushar Sharma**  
+**Tushar Kanti Dey**  
 Full-stack developer focused on matching algorithms and real-time systems.
 
 ---
