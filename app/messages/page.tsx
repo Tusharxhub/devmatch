@@ -1,23 +1,19 @@
-// app/messages/page.tsx
-// Conversations inbox — lists all chat partners with last message preview
-import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import Image from "next/image";
-import {
-  MessageSquare,
-  Users,
-  Circle,
-  ArrowRight,
-} from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { getServerSession } from "next-auth"
+import { redirect } from "next/navigation"
+import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import Link from "next/link"
+import Image from "next/image"
+import { MessageSquare, Users, Circle, ArrowRight } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
+import Container from "@/components/ui/container"
+import Card from "@/components/ui/card"
+import Badge from "@/components/ui/badge"
 
 export default async function MessagesInboxPage() {
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions)
   if (!session?.user?.id) {
-    redirect("/auth/signin");
+    redirect("/auth/signin")
   }
 
   // Get all unique conversation partners
@@ -38,7 +34,7 @@ export default async function MessagesInboxPage() {
       ...sentMessages.map((m) => m.receiverId),
       ...receivedMessages.map((m) => m.senderId),
     ])
-  );
+  )
 
   // Build conversation list with last message + unread count
   const conversations = await Promise.all(
@@ -77,110 +73,104 @@ export default async function MessagesInboxPage() {
         }),
       ]);
 
-      return { partner, lastMessage, unreadCount };
+      return { partner, lastMessage, unreadCount }
     })
-  );
+  )
 
   // Sort by most recent message
   conversations.sort(
     (a, b) =>
       (b.lastMessage?.createdAt?.getTime() || 0) -
       (a.lastMessage?.createdAt?.getTime() || 0)
-  );
+  )
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <MessageSquare className="w-6 h-6 text-violet-400" />
-          Messages
-        </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Your conversations with other developers
-        </p>
-      </div>
-
-      {conversations.length === 0 ? (
-        <div className="glass rounded-xl p-12 text-center">
-          <MessageSquare className="w-16 h-16 text-muted-foreground/15 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold mb-2">No conversations yet</h2>
-          <p className="text-sm text-muted-foreground mb-6">
-            Head to your matches and start a conversation!
-          </p>
-          <Link
-            href="/dashboard/matches"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-violet-600 to-cyan-600 text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-          >
-            <Users className="w-4 h-4" />
-            Browse Matches
-          </Link>
+    <div className="min-h-screen bg-[#0b0b0f]">
+      <Container>
+        <div className="py-8 border-b border-line">
+          <div className="flex items-center gap-3">
+            <MessageSquare className="w-6 h-6 text-[#ff2e63]" />
+            <h1 className="text-heading-xl">Messages</h1>
+          </div>
+          <p className="text-body-sm text-[#b0b0b8] mt-2">Your conversations with other developers</p>
         </div>
-      ) : (
-        <div className="space-y-2">
-          {conversations.map((conv) => {
-            if (!conv.partner) return null;
-            const isMyLastMessage = conv.lastMessage?.senderId === session.user.id;
 
-            return (
-              <Link
-                key={conv.partner.id}
-                href={`/messages/${conv.partner.id}`}
-                className="group flex items-center gap-4 p-4 rounded-xl glass hover:bg-white/[0.04] transition-all duration-200"
-              >
-                {/* Avatar */}
-                <div className="relative shrink-0">
-                  {conv.partner.image ? (
-                    <Image
-                      src={conv.partner.image}
-                      alt={conv.partner.name || ""}
-                      width={48}
-                      height={48}
-                      className="rounded-full"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-full bg-violet-500/20 flex items-center justify-center">
-                      <Users className="w-5 h-5 text-violet-400" />
-                    </div>
-                  )}
-                  {conv.partner.onlineStatus && (
-                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[hsl(222,47%,4%)]" />
-                  )}
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-sm font-semibold truncate">
-                      {conv.partner.name}
-                    </p>
-                    {conv.lastMessage && (
-                      <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                        {formatDistanceToNow(new Date(conv.lastMessage.createdAt), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs text-muted-foreground truncate">
-                      {isMyLastMessage ? "You: " : ""}
-                      {conv.lastMessage?.content || "No messages yet"}
-                    </p>
-                    {conv.unreadCount > 0 && (
-                      <span className="ml-2 w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-                        {conv.unreadCount}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {/* Arrow */}
-                <ArrowRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-violet-400 transition-colors shrink-0" />
+        <div className="py-8">
+          {conversations.length === 0 ? (
+            <Card variant="featured" className="text-center py-14">
+              <MessageSquare className="w-16 h-16 text-[#9ca3af]/20 mx-auto mb-4" />
+              <h2 className="text-heading-md mb-2">No conversations yet</h2>
+              <p className="text-body-sm text-[#b0b0b8] mb-6">
+                Head to your matches and start a conversation.
+              </p>
+              <Link href="/dashboard/matches">
+                <Badge variant="accent" size="md" className="inline-flex items-center gap-2 px-4 py-2">
+                  <Users className="w-4 h-4" />
+                  Browse Matches
+                </Badge>
               </Link>
-            );
-          })}
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {conversations.map((conv) => {
+                if (!conv.partner) return null
+                const isMyLastMessage = conv.lastMessage?.senderId === session.user.id
+
+                return (
+                  <Link key={conv.partner.id} href={`/messages/${conv.partner.id}`}>
+                    <Card variant="interactive" className="group">
+                      <div className="flex items-center gap-4">
+                        <div className="relative shrink-0">
+                          {conv.partner.image ? (
+                            <Image
+                              src={conv.partner.image}
+                              alt={conv.partner.name || ""}
+                              width={48}
+                              height={48}
+                              className="rounded-full"
+                            />
+                          ) : (
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(255,46,99,0.1)] border border-[rgba(255,46,99,0.2)]">
+                              <Users className="w-5 h-5 text-[#ff2e63]" />
+                            </div>
+                          )}
+                          {conv.partner.onlineStatus && (
+                            <Circle className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 fill-[#00ffa3] text-[#00ffa3]" />
+                          )}
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="truncate font-semibold text-[#eaeaf0]">{conv.partner.name}</p>
+                            {conv.lastMessage && (
+                              <span className="shrink-0 text-[10px] text-[#9ca3af]">
+                                {formatDistanceToNow(new Date(conv.lastMessage.createdAt), { addSuffix: true })}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 flex items-center justify-between gap-3">
+                            <p className="truncate text-xs text-[#9ca3af]">
+                              {isMyLastMessage ? "You: " : ""}
+                              {conv.lastMessage?.content || "No messages yet"}
+                            </p>
+                            {conv.unreadCount > 0 && (
+                              <Badge variant="accent" size="sm">
+                                {conv.unreadCount}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+
+                        <ArrowRight className="w-4 h-4 shrink-0 text-[#9ca3af] transition-colors group-hover:text-[#ff2e63]" />
+                      </div>
+                    </Card>
+                  </Link>
+                )
+              })}
+            </div>
+          )}
         </div>
-      )}
+      </Container>
     </div>
-  );
+  )
 }

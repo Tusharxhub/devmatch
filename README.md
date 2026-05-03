@@ -228,7 +228,7 @@ Create a `.env.local` file in the root directory:
 
 ```bash
 # NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3001
 NEXTAUTH_SECRET=your-secret-key-here
 
 # GitHub OAuth
@@ -286,7 +286,7 @@ npm run dev
 # In another terminal, start the worker
 npm run worker
 
-# Open http://localhost:3000
+# Open http://localhost:3001
 ```
 
 **Development Commands:**
@@ -319,11 +319,11 @@ docker-compose up -d
 # Run migrations
 docker exec devmatch npm run prisma:migrate:prod
 
-# Open http://localhost:3000
+# Open http://localhost:3001
 ```
 
 **Docker Services:**
-- `web` - Next.js application (port 3000)
+- `web` - Next.js application (port 3001)
 - `postgres` - PostgreSQL database (port 5432)
 - `redis` - Redis cache (port 6379)
 - `worker` - BullMQ background jobs

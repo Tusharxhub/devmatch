@@ -46,7 +46,7 @@ ENV REDIS_URL=${REDIS_URL:-redis://redis:6379}
 ENV GITHUB_ID=${GITHUB_ID:-dev}
 ENV GITHUB_SECRET=${GITHUB_SECRET:-dev}
 ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-dev}
-ENV NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3001}
 
 # Build Next.js application
 RUN npm run build
@@ -76,14 +76,14 @@ RUN chown -R nextjs:nodejs /app
 
 USER nextjs
 
-EXPOSE 3000
+EXPOSE 3001
 
-ENV PORT=3000
+ENV PORT=3001
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:3000/api/health || exit 1
+  CMD curl -f http://localhost:3001/api/health || exit 1
 
 CMD ["node", "server.js"]
 
