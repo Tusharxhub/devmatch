@@ -12,8 +12,18 @@ const workerSchema = z.object({
 const appSchema = workerSchema.extend({
   GITHUB_ID: z.string().min(1, "GITHUB_ID is required"),
   GITHUB_SECRET: z.string().min(1, "GITHUB_SECRET is required"),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
   NEXTAUTH_SECRET: z.string().min(1, "NEXTAUTH_SECRET is required"),
   NEXTAUTH_URL: z.string().url("NEXTAUTH_URL must be a valid URL"),
+  PUSHER_APP_ID: z.string().optional(),
+  PUSHER_KEY: z.string().optional(),
+  PUSHER_SECRET: z.string().optional(),
+  PUSHER_CLUSTER: z.string().optional(),
+  NEXT_PUBLIC_APP_URL: z.string().url().optional(),
+  NEXT_PUBLIC_POSTHOG_KEY: z.string().optional(),
+  NEXT_PUBLIC_POSTHOG_HOST: z.string().url().optional(),
+  SENTRY_DSN: z.string().url().optional(),
 });
 
 const schema = isWorker ? workerSchema : appSchema;

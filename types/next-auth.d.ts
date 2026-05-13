@@ -10,12 +10,16 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       githubUsername?: string;
+      role?: "DEVELOPER" | "RECRUITER" | "ADMIN";
+      isBanned?: boolean;
     };
   }
 
   interface User {
     id: string;
     githubUsername?: string;
+    role?: "DEVELOPER" | "RECRUITER" | "ADMIN";
+    isBanned?: boolean;
   }
 }
 
@@ -23,5 +27,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     githubUsername?: string;
+    role?: "DEVELOPER" | "RECRUITER" | "ADMIN";
+    isBanned?: boolean;
   }
 }

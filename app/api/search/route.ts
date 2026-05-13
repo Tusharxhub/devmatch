@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const query = searchParams.get("q")?.trim();
-    const type = searchParams.get("type") || "all"; // all | users | projects | communities
+    const type = searchParams.get("type") || "all"; // all | users | projects | communities | posts
     const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 30);
 
     if (!query || query.length < 2) {
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       users: [],
       projects: [],
       communities: [],
+      posts: [],
     };
 
     // Search users
@@ -106,6 +107,39 @@ export async function GET(req: NextRequest) {
           memberCount: true,
           image: true,
         },
+        take: limit,
+      });
+    }
+
+    // Search posts
+    if (type === "all" || type === "posts") {
+      results.posts = await prisma.post.findMany({
+        where: {
+          deletedAt: null,
+          OR: [
+            { title: { contains: query, mode: "insensitive" } },
+            { content: { contains: query, mode: "insensitive" } },
+            { tags: { hasSome: [query.toLowerCase()] } },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          content: true,
+          type: true,
+          tags: true,
+          createdAt: true,
+          author: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+              githubProfile: { select: { username: true } },
+            },
+          },
+          _count: { select: { comments: true, reactions: true } },
+        },
+        orderBy: { createdAt: "desc" },
         take: limit,
       });
     }

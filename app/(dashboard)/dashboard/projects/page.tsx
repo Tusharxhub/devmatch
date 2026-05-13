@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   FolderKanban,
   Plus,
@@ -46,7 +46,6 @@ export default function ProjectsPage() {
     repoUrl: "",
     isPublic: true,
   });
-  const router = useRouter();
 
   useEffect(() => {
     fetchProjects();
@@ -158,58 +157,52 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
-            <Card key={project.id} variant="interactive" padding="md">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-heading-sm truncate">{project.name}</h3>
-                  {project.description && (
-                    <p className="text-body-sm mt-1 line-clamp-2">{project.description}</p>
-                  )}
+            <Link key={project.id} href={`/dashboard/projects/${project.slug}`}>
+              <Card variant="interactive" padding="md" className="h-full">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-heading-sm truncate">{project.name}</h3>
+                    {project.description && (
+                      <p className="text-body-sm mt-1 line-clamp-2">{project.description}</p>
+                    )}
+                  </div>
+                  <Badge variant={statusColors[project.status] as "success" | "warning" | "info" | "default"} size="xs">
+                    {project.status.toLowerCase()}
+                  </Badge>
                 </div>
-                <Badge variant={statusColors[project.status] as "success" | "warning" | "info" | "default"} size="xs">
-                  {project.status.toLowerCase()}
-                </Badge>
-              </div>
 
-              {project.techStack.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {project.techStack.slice(0, 5).map((tech) => (
-                    <Badge key={tech} variant="outline" size="xs">
-                      {tech}
-                    </Badge>
-                  ))}
-                  {project.techStack.length > 5 && (
-                    <Badge variant="outline" size="xs">
-                      +{project.techStack.length - 5}
-                    </Badge>
-                  )}
-                </div>
-              )}
-
-              <div className="flex items-center justify-between pt-3 border-t border-[var(--dm-border)]">
-                <div className="flex items-center gap-3 text-xs text-[var(--dm-text-muted)]">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    {project._count.members}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <GitBranch className="w-3 h-3" />
-                    {project._count.tasks} tasks
-                  </span>
-                </div>
-                {project.repoUrl && (
-                  <a
-                    href={project.repoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--dm-text-muted)] hover:text-[var(--dm-text-primary)] transition-colors"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+                {project.techStack.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {project.techStack.slice(0, 5).map((tech) => (
+                      <Badge key={tech} variant="outline" size="xs">
+                        {tech}
+                      </Badge>
+                    ))}
+                    {project.techStack.length > 5 && (
+                      <Badge variant="outline" size="xs">
+                        +{project.techStack.length - 5}
+                      </Badge>
+                    )}
+                  </div>
                 )}
-              </div>
-            </Card>
+
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--dm-border)]">
+                  <div className="flex items-center gap-3 text-xs text-[var(--dm-text-muted)]">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      {project._count.members}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <GitBranch className="w-3 h-3" />
+                      {project._count.tasks} tasks
+                    </span>
+                  </div>
+                  {project.repoUrl && (
+                    <ExternalLink className="w-3.5 h-3.5 text-[var(--dm-text-muted)]" />
+                  )}
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
@@ -261,6 +254,16 @@ export default function ProjectsPage() {
               value={form.repoUrl}
               onChange={(e) => setForm({ ...form, repoUrl: e.target.value })}
               placeholder="https://github.com/..."
+              className="w-full px-3 py-2.5 rounded-[var(--radius-md)] bg-[var(--dm-bg-raised)] border border-[var(--dm-border)] text-sm text-[var(--dm-text-primary)] placeholder:text-[var(--dm-text-muted)] focus:outline-none focus:border-[var(--dm-accent)] transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="text-label mb-1.5 block">Tags (comma separated)</label>
+            <input
+              value={form.tags}
+              onChange={(e) => setForm({ ...form, tags: e.target.value })}
+              placeholder="open-source, collaboration, api"
               className="w-full px-3 py-2.5 rounded-[var(--radius-md)] bg-[var(--dm-bg-raised)] border border-[var(--dm-border)] text-sm text-[var(--dm-text-primary)] placeholder:text-[var(--dm-text-muted)] focus:outline-none focus:border-[var(--dm-accent)] transition-all"
             />
           </div>

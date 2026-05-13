@@ -6,6 +6,7 @@ import {
   Users,
   FolderKanban,
   Globe,
+  FileText,
   Loader2,
   ArrowRight,
   X,
@@ -14,7 +15,7 @@ import Card from "@/components/ui/card";
 import Badge from "@/components/ui/badge";
 import Avatar from "@/components/ui/avatar";
 
-type SearchType = "all" | "users" | "projects" | "communities";
+type SearchType = "all" | "users" | "projects" | "communities" | "posts";
 
 interface SearchResults {
   users: Array<{
@@ -47,6 +48,21 @@ interface SearchResults {
     memberCount: number;
     image?: string | null;
   }>;
+  posts: Array<{
+    id: string;
+    title?: string | null;
+    content: string;
+    type: string;
+    tags: string[];
+    createdAt: string;
+    author: {
+      id: string;
+      name?: string | null;
+      image?: string | null;
+      githubProfile?: { username?: string | null } | null;
+    };
+    _count: { comments: number; reactions: number };
+  }>;
 }
 
 const tabs: Array<{ value: SearchType; label: string; icon: typeof SearchIcon }> = [
@@ -54,6 +70,7 @@ const tabs: Array<{ value: SearchType; label: string; icon: typeof SearchIcon }>
   { value: "users", label: "Developers", icon: Users },
   { value: "projects", label: "Projects", icon: FolderKanban },
   { value: "communities", label: "Communities", icon: Globe },
+  { value: "posts", label: "Posts", icon: FileText },
 ];
 
 export default function SearchPage() {
@@ -93,7 +110,7 @@ export default function SearchPage() {
   }
 
   const totalResults = results
-    ? results.users.length + results.projects.length + results.communities.length
+    ? results.users.length + results.projects.length + results.communities.length + results.posts.length
     : 0;
 
   return (
@@ -264,6 +281,43 @@ export default function SearchPage() {
                       <span className="text-xs text-[var(--dm-text-muted)]">
                         {community.memberCount} members
                       </span>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Posts */}
+          {results.posts.length > 0 && (type === "all" || type === "posts") && (
+            <section>
+              <h2 className="text-label mb-3 flex items-center gap-2">
+                <FileText className="w-3.5 h-3.5" />
+                Posts ({results.posts.length})
+              </h2>
+              <div className="space-y-2">
+                {results.posts.map((post) => (
+                  <Card key={post.id} variant="interactive" padding="sm">
+                    <div className="flex items-start gap-3 p-1">
+                      <Avatar src={post.author.image} alt={post.author.name || ""} size="sm" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-semibold text-[var(--dm-text-primary)] truncate">
+                            {post.title || post.content.slice(0, 72)}
+                          </div>
+                          <Badge variant="outline" size="xs">
+                            {post.type.replace("_", " ")}
+                          </Badge>
+                        </div>
+                        <div className="mt-0.5 text-xs text-[var(--dm-text-muted)] line-clamp-2">
+                          {post.content}
+                        </div>
+                        <div className="mt-2 flex items-center gap-2 text-[10px] text-[var(--dm-text-faint)]">
+                          <span>{post.author.name || post.author.githubProfile?.username || "Developer"}</span>
+                          <span>{post._count.comments} replies</span>
+                          <span>{post._count.reactions} reactions</span>
+                        </div>
+                      </div>
                     </div>
                   </Card>
                 ))}

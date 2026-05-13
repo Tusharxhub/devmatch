@@ -2,6 +2,7 @@
 // NextAuth configuration with GitHub OAuth + Prisma adapter
 import { NextAuthOptions } from "next-auth";
 import GitHubProvider from "next-auth/providers/github";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { enqueueGithubSync, enqueueMatchCompute } from "@/lib/queue";
@@ -24,28 +25,39 @@ function logError(event: string, error: unknown, context?: Record<string, unknow
   });
 }
 
+const providers: NextAuthOptions["providers"] = [
+  GitHubProvider({
+    clientId: env.GITHUB_ID,
+    clientSecret: env.GITHUB_SECRET,
+    authorization: {
+      params: {
+        scope: "read:user user:email repo",
+      },
+    },
+    profile(profile) {
+      return {
+        id: profile.id.toString(),
+        name: profile.name || profile.login,
+        email: profile.email,
+        image: profile.avatar_url,
+      };
+    },
+  }),
+];
+
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
+  providers.push(
+    GoogleProvider({
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
+    })
+  );
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions["adapter"],
 
-  providers: [
-    GitHubProvider({
-      clientId: env.GITHUB_ID,
-      clientSecret: env.GITHUB_SECRET,
-      authorization: {
-        params: {
-          scope: "read:user user:email repo",
-        },
-      },
-      profile(profile) {
-        return {
-          id: profile.id.toString(),
-          name: profile.name || profile.login,
-          email: profile.email,
-          image: profile.avatar_url,
-        };
-      },
-    }),
-  ],
+  providers,
 
   callbacks: {
     async jwt({ token, user, profile, account }) {
@@ -59,20 +71,38 @@ export const authOptions: NextAuthOptions = {
         token.githubUsername = (profile as { login?: string }).login;
       }
 
-      if (!token.githubUsername && token.id) {
-        const githubProfile = await prisma.githubProfile.findUnique({
-          where: { userId: token.id },
-          select: { username: true },
+      if (token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id },
+          select: {
+            role: true,
+            isBanned: true,
+            githubProfile: { select: { username: true } },
+          },
         });
-        if (githubProfile?.username) {
-          token.githubUsername = githubProfile.username;
+        if (!token.githubUsername && dbUser?.githubProfile?.username) {
+          token.githubUsername = dbUser.githubProfile.username;
         }
+        token.role = dbUser?.role;
+        token.isBanned = dbUser?.isBanned;
       }
 
       return token;
     },
 
     async signIn({ user, account, profile }) {
+      if (user.id) {
+        const existingUser = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { isBanned: true },
+        }).catch(() => null);
+
+        if (existingUser?.isBanned) {
+          logWarn("blocked_banned_user_signin", { userId: user.id });
+          return false;
+        }
+      }
+
       if (account?.provider === "github" && profile) {
         const githubProfile = profile as {
           login: string;
@@ -131,17 +161,29 @@ export const authOptions: NextAuthOptions = {
           (session.user as { githubUsername?: string }).githubUsername =
             token.githubUsername;
         }
+        if (token.role) {
+          session.user.role = token.role;
+        }
+        if (typeof token.isBanned === "boolean") {
+          session.user.isBanned = token.isBanned;
+        }
 
-        if (!token.githubUsername && userId) {
-          const githubProfile = await prisma.githubProfile.findUnique({
-            where: { userId },
-            select: { username: true },
+        if (userId) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+              role: true,
+              isBanned: true,
+              githubProfile: { select: { username: true } },
+            },
           });
 
-          if (githubProfile) {
+          if (dbUser?.githubProfile) {
             (session.user as { githubUsername?: string }).githubUsername =
-              githubProfile.username;
+              dbUser.githubProfile.username;
           }
+          session.user.role = dbUser?.role;
+          session.user.isBanned = dbUser?.isBanned;
         }
       }
 

@@ -51,6 +51,22 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    await prisma.notification.create({
+      data: {
+        userId: receiverId,
+        type: "MESSAGE_RECEIVED",
+        title: `New message from ${session.user.name || "a developer"}`,
+        message: message.content.slice(0, 140),
+        data: {
+          senderId: session.user.id,
+          messageId: message.id,
+          conversationUrl: `/messages/${session.user.id}`,
+        },
+      },
+    }).catch((notificationErr) => {
+      console.error("[API:Messages] Notification create failed:", notificationErr);
+    });
+
     // Trigger Pusher real-time event
     try {
       const pusher = getPusherServer();
@@ -62,6 +78,11 @@ export async function POST(req: NextRequest) {
         content: message.content,
         createdAt: message.createdAt.toISOString(),
         sender: message.sender,
+      });
+      await pusher.trigger(CHANNELS.user(receiverId), EVENTS.NEW_MESSAGE, {
+        messageId: message.id,
+        senderId: session.user.id,
+        preview: message.content.slice(0, 140),
       });
     } catch (pusherErr) {
       // Pusher failure should not block message persistence

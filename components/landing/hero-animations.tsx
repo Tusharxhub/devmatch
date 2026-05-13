@@ -168,7 +168,7 @@ export function FloatingDevCard({
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ delay, duration: 0.8, ease: [0.22, 1, 0.36, 1] as const }}
       className={className}
     >
       <motion.div
@@ -225,7 +225,7 @@ export function FadeInSection({
       initial={{ opacity: 0, y: 24 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] as const }}
       className={className}
     >
       {children}

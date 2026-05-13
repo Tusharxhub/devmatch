@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://devmatch:devmatch_secret@localhost:5432/devmatch?schema=public
+      REDIS_URL: redis://localhost:6379
+      NEXTAUTH_URL: http://localhost:3000
+      NEXTAUTH_SECRET: ci-nextauth-secret-at-least-32-characters
+      GITHUB_ID: ci-github-id
+      GITHUB_SECRET: ci-github-secret
+      PUSHER_APP_ID: ci
+      PUSHER_KEY: ci
+      PUSHER_SECRET: ci
+      PUSHER_CLUSTER: ap2
+      NEXT_PUBLIC_PUSHER_KEY: ci
+      NEXT_PUBLIC_PUSHER_CLUSTER: ap2
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npm run build
