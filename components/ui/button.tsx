@@ -4,10 +4,11 @@ import React from "react"
 import { cn } from "@/lib/utils"
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger"
-  size?: "sm" | "md" | "lg"
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "success" | "outline"
+  size?: "xs" | "sm" | "md" | "lg"
   isLoading?: boolean
   fullWidth?: boolean
+  icon?: React.ReactNode
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -17,26 +18,37 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variant = "primary",
       size = "md",
       isLoading = false,
-      fullWidth = true,
+      fullWidth = false,
+      icon,
       children,
       disabled,
       ...props
     },
     ref
   ) => {
-    const baseClasses = "inline-flex items-center justify-center rounded-lg font-medium transition-all duration-200 whitespace-nowrap active:scale-95"
+    const base =
+      "inline-flex items-center justify-center font-medium transition-all whitespace-nowrap select-none active:scale-[0.97]"
 
-    const variantClasses = {
-      primary: "bg-[#ff2e63] text-white hover:bg-[#ff1447] shadow-lg hover:shadow-[0_0_30px_rgba(255,46,99,0.3)]",
-      secondary: "glass-hover text-[#eaeaf0] hover:bg-[rgba(18,18,26,0.9)]",
-      ghost: "text-[#b0b0b8] hover:text-[#eaeaf0] hover:bg-[rgba(255,255,255,0.05)]",
-      danger: "bg-[#ff2e63]/20 text-[#ff2e63] hover:bg-[#ff2e63]/30",
+    const variants: Record<string, string> = {
+      primary:
+        "bg-[var(--dm-accent)] text-white hover:bg-[var(--dm-accent-hover)] shadow-md hover:shadow-[0_0_24px_rgba(230,57,86,0.25)] rounded-[var(--radius-md)]",
+      secondary:
+        "glass-hover text-[var(--dm-text-primary)] rounded-[var(--radius-md)]",
+      ghost:
+        "text-[var(--dm-text-secondary)] hover:text-[var(--dm-text-primary)] hover:bg-[var(--dm-bg-hover)] rounded-[var(--radius-md)]",
+      danger:
+        "bg-[var(--dm-accent-muted)] text-[var(--dm-accent)] hover:bg-[rgba(230,57,86,0.2)] rounded-[var(--radius-md)]",
+      success:
+        "bg-[var(--dm-green-muted)] text-[var(--dm-green)] hover:bg-[rgba(45,212,160,0.2)] rounded-[var(--radius-md)]",
+      outline:
+        "border border-[var(--dm-border)] text-[var(--dm-text-secondary)] hover:text-[var(--dm-text-primary)] hover:border-[var(--dm-border-hover)] hover:bg-[var(--dm-bg-hover)] rounded-[var(--radius-md)]",
     }
 
-    const sizeClasses = {
-      sm: "px-3 py-1.5 text-sm gap-2",
-      md: "px-4 py-2.5 text-base gap-2.5",
-      lg: "px-6 py-3.5 text-base gap-3",
+    const sizes: Record<string, string> = {
+      xs: "h-7 px-2.5 text-xs gap-1.5",
+      sm: "h-8 px-3 text-sm gap-2",
+      md: "h-10 px-4 text-sm gap-2.5",
+      lg: "h-12 px-6 text-base gap-3",
     }
 
     return (
@@ -44,23 +56,21 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          baseClasses,
-          variantClasses[variant],
-          sizeClasses[size],
+          base,
+          variants[variant],
+          sizes[size],
           fullWidth && "w-full",
-          disabled && "opacity-50 cursor-not-allowed",
+          (disabled || isLoading) && "opacity-50 cursor-not-allowed pointer-events-none",
           className
         )}
         {...props}
       >
         {isLoading ? (
-          <>
-            <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-            {children}
-          </>
-        ) : (
-          children
-        )}
+          <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : icon ? (
+          <span className="shrink-0">{icon}</span>
+        ) : null}
+        {children}
       </button>
     )
   }

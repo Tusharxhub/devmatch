@@ -1,44 +1,21 @@
 "use client"
 
-import React from "react"
 import { cn } from "@/lib/utils"
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  size?: "sm" | "md" | "lg"
+  size?: "narrow" | "default" | "wide"
 }
 
-const Container = React.forwardRef<HTMLDivElement, ContainerProps>(
-  (
-    {
-      className,
-      size = "lg",
-      children,
-      ...props
-    },
-    ref
-  ) => {
-    const sizeClasses = {
-      sm: "max-w-2xl",
-      md: "max-w-4xl",
-      lg: "max-w-7xl",
-    }
-
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          "mx-auto px-4 sm:px-6 lg:px-8",
-          sizeClasses[size],
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </div>
-    )
+export default function Container({ size = "default", className, children, ...props }: ContainerProps) {
+  const sizes = {
+    narrow: "container-narrow",
+    default: "container-base",
+    wide: "container-wide",
   }
-)
 
-Container.displayName = "Container"
-
-export default Container
+  return (
+    <div className={cn(sizes[size], className)} {...props}>
+      {children}
+    </div>
+  )
+}

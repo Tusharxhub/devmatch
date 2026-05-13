@@ -2,7 +2,6 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
 import {
@@ -15,120 +14,172 @@ import {
   Menu,
   X,
   Zap,
+  FolderKanban,
+  Globe,
+  Bell,
+  Search,
+  Shield,
 } from "lucide-react"
 import { useState } from "react"
+import Avatar from "@/components/ui/avatar"
 
 interface NavProps {
   user: {
     name?: string | null
     email?: string | null
     image?: string | null
+    role?: string
   }
 }
 
-const navItems = [
+const mainNav = [
   { href: "/dashboard", label: "Discover", icon: LayoutDashboard },
   { href: "/dashboard/matches", label: "Matches", icon: Users },
+  { href: "/dashboard/projects", label: "Projects", icon: FolderKanban },
+  { href: "/dashboard/communities", label: "Communities", icon: Globe },
   { href: "/messages", label: "Messages", icon: MessageSquare },
+  { href: "/dashboard/feed", label: "Feed", icon: Bell },
+]
+
+const bottomNav = [
   { href: "/dashboard/profile", label: "Profile", icon: User },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ]
 
 export function DashboardNav({ user }: NavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
 
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href !== "/dashboard" && pathname.startsWith(href))
+
   return (
     <>
       {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-lg glass border-line flex items-center justify-center text-[#eaeaf0] hover:bg-[rgba(18,18,26,0.9)] transition-all"
+        className="lg:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-[var(--radius-md)] glass flex items-center justify-center text-[var(--dm-text-primary)] hover:bg-[var(--dm-bg-active)] transition-all"
         aria-label="Toggle navigation"
       >
-        {mobileOpen ? (
-          <X className="w-5 h-5" />
-        ) : (
-          <Menu className="w-5 h-5" />
-        )}
+        {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
 
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30"
+          className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 z-40 glass border-r border-line flex flex-col transform transition-transform duration-300 ${
+        className={`fixed top-0 left-0 h-full w-64 z-40 bg-[var(--dm-bg-base)] border-r border-[var(--dm-border)] flex flex-col transform transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center gap-2.5 px-6 border-b border-line">
-          <div className="w-8 h-8 rounded-lg bg-[#ff2e63] flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <span className="text-lg font-bold text-[#eaeaf0]">
-            Dev<span className="text-[#ff2e63]">Match</span>
-          </span>
+        <div className="h-16 flex items-center gap-2.5 px-5 border-b border-[var(--dm-border)]">
+          <Link href="/dashboard" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-lg bg-[var(--dm-accent)] flex items-center justify-center transition-shadow group-hover:shadow-[0_0_12px_rgba(230,57,86,0.3)]">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <span className="font-display text-base font-bold tracking-tight">
+              Dev<span className="text-[var(--dm-accent)]">Match</span>
+            </span>
+          </Link>
         </div>
 
-        {/* Nav items */}
-        <nav className="flex-1 py-6 px-3 space-y-1">
-          {navItems.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href === "/messages" && pathname.startsWith("/messages"))
-            return (
+        {/* Search trigger */}
+        <div className="px-3 py-3 border-b border-[var(--dm-border)]">
+          <Link
+            href="/dashboard/search"
+            className="flex items-center gap-2.5 w-full px-3 py-2 rounded-[var(--radius-md)] text-sm text-[var(--dm-text-muted)] hover:text-[var(--dm-text-secondary)] bg-[var(--dm-bg-raised)] hover:bg-[var(--dm-bg-surface)] border border-[var(--dm-border)] transition-all"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Search...</span>
+            <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-[var(--dm-bg-surface)] border border-[var(--dm-border)] text-[var(--dm-text-faint)]">
+              ⌘K
+            </kbd>
+          </Link>
+        </div>
+
+        {/* Main nav */}
+        <nav className="flex-1 py-4 px-3 space-y-0.5 overflow-y-auto">
+          <div className="text-label px-3 mb-2">Platform</div>
+          {mainNav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-all duration-150 ${
+                isActive(item.href)
+                  ? "bg-[var(--dm-accent-muted)] text-[var(--dm-accent)] border border-[rgba(230,57,86,0.15)]"
+                  : "text-[var(--dm-text-secondary)] hover:text-[var(--dm-text-primary)] hover:bg-[var(--dm-bg-hover)] border border-transparent"
+              }`}
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              {item.label}
+            </Link>
+          ))}
+
+          {/* Admin link for admin users */}
+          {user.role === "ADMIN" && (
+            <>
+              <div className="text-label px-3 mt-5 mb-2">Admin</div>
               <Link
-                key={item.href}
-                href={item.href}
+                href="/admin"
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-[rgba(255,46,99,0.1)] text-[#ff2e63] border border-[rgba(255,46,99,0.2)]"
-                    : "text-[#b0b0b8] hover:text-[#eaeaf0] hover:bg-[rgba(255,255,255,0.05)]"
+                className={`flex items-center gap-3 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-all duration-150 ${
+                  pathname.startsWith("/admin")
+                    ? "bg-[var(--dm-accent-muted)] text-[var(--dm-accent)] border border-[rgba(230,57,86,0.15)]"
+                    : "text-[var(--dm-text-secondary)] hover:text-[var(--dm-text-primary)] hover:bg-[var(--dm-bg-hover)] border border-transparent"
                 }`}
               >
-                <item.icon className="w-4 h-4 shrink-0" />
-                {item.label}
+                <Shield className="w-4 h-4 shrink-0" />
+                Admin Panel
               </Link>
-            )
-          })}
+            </>
+          )}
+
+          <div className="text-label px-3 mt-5 mb-2">Account</div>
+          {bottomNav.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center gap-3 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium transition-all duration-150 ${
+                isActive(item.href)
+                  ? "bg-[var(--dm-accent-muted)] text-[var(--dm-accent)] border border-[rgba(230,57,86,0.15)]"
+                  : "text-[var(--dm-text-secondary)] hover:text-[var(--dm-text-primary)] hover:bg-[var(--dm-bg-hover)] border border-transparent"
+              }`}
+            >
+              <item.icon className="w-4 h-4 shrink-0" />
+              {item.label}
+            </Link>
+          ))}
         </nav>
 
-        {/* User profile section */}
-        <div className="p-4 border-t border-line">
-          <div className="flex items-center gap-3 mb-4">
-            {user.image ? (
-              <Image
-                src={user.image}
-                alt={user.name || "User"}
-                width={36}
-                height={36}
-                className="rounded-full border border-[rgba(255,46,99,0.2)]"
-              />
-            ) : (
-              <div className="w-9 h-9 rounded-full bg-[rgba(255,46,99,0.1)] flex items-center justify-center border border-[rgba(255,46,99,0.2)]">
-                <User className="w-4 h-4 text-[#ff2e63]" />
-              </div>
-            )}
+        {/* User section */}
+        <div className="p-3 border-t border-[var(--dm-border)]">
+          <div className="flex items-center gap-3 px-2 py-2 mb-2">
+            <Avatar src={user.image} alt={user.name || "User"} size="sm" online />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#eaeaf0] truncate">
+              <p className="text-sm font-medium text-[var(--dm-text-primary)] truncate">
                 {user.name || "Developer"}
               </p>
-              <p className="text-xs text-[#9ca3af] truncate">{user.email}</p>
+              <p className="text-xs text-[var(--dm-text-muted)] truncate">
+                {user.email}
+              </p>
             </div>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-[#b0b0b8] hover:text-[#ff2e63] hover:bg-[rgba(255,46,99,0.05)] transition-all"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-[var(--radius-md)] text-sm font-medium text-[var(--dm-text-muted)] hover:text-[var(--dm-accent)] hover:bg-[var(--dm-accent-muted)] transition-all"
           >
             <LogOut className="w-4 h-4" />
-            Sign Out
+            Sign out
           </button>
         </div>
       </aside>
