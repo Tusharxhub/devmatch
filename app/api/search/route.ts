@@ -4,6 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/search — global search across users, projects, communities
 export async function GET(req: NextRequest) {
   try {
